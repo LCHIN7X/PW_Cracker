@@ -17,6 +17,6 @@ def crack_pdf(pdf_path, wordlist_path):
                         return
                 except Exception as e:
                     pass
-        print("[-] Password not found.")
+        print("Password not found.")
 
 crack_pdf("crack.pdf", "basic_list.txt")
