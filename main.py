@@ -1,24 +1,31 @@
-import PyPDF2
+import pikepdf
+from multiprocessing import Pool, cpu_count
+import itertools
 
-def crack_pdf(pdf_path, wordlist_path):
-    with open(pdf_path, 'rb') as file:
-        reader = PyPDF2.PdfReader(file)
+PDF_FILE = 'cracker4' \
+'.pdf'
+WORDLIST = 'pw_list.txt'
 
-        if not reader.is_encrypted:
-            print("PDF is not password protected.")
-            return
+def try_password(password):
+    password = password.strip()
+    try:
+        with pikepdf.open(PDF_FILE, password=password):
+            return password
+    except pikepdf.PasswordError:
+        return None
 
-        with open(wordlist_path, 'r') as words:
-            for line in words:
-                password = line.strip()
-                try:
-                    if reader.decrypt(password):
-                        print(f"[+] Password found: {password}")
-                        return
-                except Exception as e:
-                    pass
-        print("[-] Password not found.")
+def main():
+    with open(WORDLIST, 'r', encoding='utf-8', errors='ignore') as f:
+        passwords = f.readlines()
 
+    with Pool(cpu_count()) as pool:
+        for result in pool.imap_unordered(try_password, passwords, chunksize=100):
+            if result:
+                print(f'Password found: {result}')
+                pool.terminate()
+                break
+        else:
+            print('Password not found.') 
 
-crack_pdf("crack.pdf", "pw_list.txt")
-
+if __name__ == '__main__':
+    main()
