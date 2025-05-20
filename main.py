@@ -1,31 +1,35 @@
-import pikepdf
-from multiprocessing import Pool, cpu_count
-import itertools
+import fitz
+from tqdm import tqdm
 
-PDF_FILE = 'cracker4' \
-'.pdf'
-WORDLIST = 'pw_list.txt'
+def crack_pdf (pdf_path,password_list):
 
-def try_password(password):
-    password = password.strip()
-    try:
-        with pikepdf.open(PDF_FILE, password=password):
+    doc = fitz.open(pdf_path)
+
+    for password in tqdm(password_list,"Guessing password"):
+
+        if doc.authenticate(password):
+
             return password
-    except pikepdf.PasswordError:
+        
         return None
+        
+if __name__ == "__main__":
+    import sys
+    pdf_filename = "cracker1.pdf"
+    wordlist_filename = "pw_list.txt"
 
-def main():
-    with open(WORDLIST, 'r', encoding='utf-8', errors='ignore') as f:
-        passwords = f.readlines()
+    try:
+        with open(wordlist_filename, "r", errors="replace") as f:
+            passwords = f.read().splitlines()
+    except Exception as e:
+        print(f"Error reading wordlist file: {e}")
+        sys.exit(1)
 
-    with Pool(cpu_count()) as pool:
-        for result in pool.imap_unordered(try_password, passwords, chunksize=100):
-            if result:
-                print(f'Password found: {result}')
-                pool.terminate()
-                break
-        else:
-            print('Password not found.') 
+    password = crack_pdf(pdf_filename, passwords)
+    if password:
+        print(f"Password is: {password}")
+    else:
+        print("Password not found.")
 
-if __name__ == '__main__':
-    main()
+        
+

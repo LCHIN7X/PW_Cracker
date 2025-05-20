@@ -13,7 +13,7 @@ def crack_pdf(pdf_path, wordlist_path):
                 password = line.strip()
                 try:
                     if reader.decrypt(password):
-                        print(f"[+] Password found: {password}")
+                        print(f" Password found: {password}")
                         return
                 except Exception as e:
                     pass
